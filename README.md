@@ -1,164 +1,109 @@
-# AI Forgery Document Review - PoC & Hands-on Guide
+# 🔍 Gemini 위조 문서 판별 시스템 (AI Forgery Document Review System)
 
-This directory contains the Proof of Concept (PoC) code and an interactive Jupyter Notebook guide for the **AI Forgery Document Review** project, designed for the Coupang Onboarding & Fraud Prevention teams.
+> **Automated Multimodal Forensic Document Examination & Fraud Prevention with Gemini 3.5 & 3.1**
+>
+> **Gemini 3.5 Flash 및 3.1 Pro 모델을 활용한 상거래 위조 서류 탐지 및 자동 검증 가이드**
 
-Our goal is to build an intelligent, automated review system to assess whether documents submitted by sellers during onboarding are faked, forged, or altered, and whether they satisfy standard operational requirements.
-
----
-
-## 🔍 Feasibility Analysis Results
-
-During our feasibility check, we evaluated the four sample forged documents provided by your team using Gemini's multimodal capabilities. The model successfully and accurately caught **100% of the anomalies** with highly descriptive reasoning:
-
-| Sample Document | Detected Anomaly (Ops) | AI Feasibility Analysis & Verification | Forgery Type |
-| :--- | :--- | :--- | :--- |
-| **[Musinsa Adidas Screenshot](file:///Users/changjoon/Documents/04_Coupang/05_ai_forgery/허위서류%20공유/허위서류%20공유/무신사구매내역서(아디다스).png)** | URL order number does not match page's order number | **Verified:** The URL contains `202512282202550002` (Dec 28, 2025), whereas the page content displays `25.12.08(월)` (Dec 8, 2025) and order number `202512081527490001` (Dec 8). | Client-side HTML modification (Inspect-Element) |
-| **[Musinsa National Geographic](file:///Users/changjoon/Documents/04_Coupang/05_ai_forgery/허위서류%20공유/허위서류%20공유/무신사구매내역서(내셔널지오그래픽).png)** | Typo `muslnsa.com` in transaction statement popup URL | **Verified:** The popup window mockup has a typosquatted URL bar showing `muslnsa.com` (lowercase `L` instead of `i`), while the main page shows `musinsa.com`. | Graphic overlay or fake domain spoofing |
-| **[Adidas Receipt](file:///Users/changjoon/Documents/04_Coupang/05_ai_forgery/허위서류%20공유/허위서류%20공유/아디다스매장영수증.png)** | Non-existent "Insan" branch; address located in Hanam-si | **Verified:** The header says `(주)예스런던(아디다스 인산점)`. There is no "인산" (Insan) branch (should be 안산 / Ansan). The address is listed as `경기 하남시 미사강변한강로...` which is physically located in Gyeonggi Hanam-si, not Ansan. | Synthetic Receipt Generator |
-| **[Hyundai Department Store](file:///Users/changjoon/Documents/04_Coupang/05_ai_forgery/허위서류%20공유/허위서류%20공유/현대백화점%20영수증.png)** | Typo "롱삼" instead of "롱샴" for Longchamp | **Verified:** The item names are listed as `롱삼` (Longsam), which is a spelling mistake for the luxury brand **Longchamp** (transliterated in Korean as `롱샴`). | Synthetic Receipt Generator / manual text edit |
-
----
-
-## 🛠️ Project Structure
-
-This PoC includes two primary components:
-
-1. **[`forgery_detector.py`](file:///Users/changjoon/Documents/04_Coupang/05_ai_forgery/forgery_detector.py)**: The production-ready forensic detection engine.
-   - Uses the **modern official Google GenAI Python SDK**.
-   - Enforces a rigorous **JSON schema output** (Pydantic model) mapping exactly to your Ops expectations.
-   - Integrates **Programmatic Verification Layers** (such as Korean Business Registration Number validation and mathematical total checking) to supplement the LLM's visual analysis.
-2. **[`forgery_detection_poc.ipynb`](file:///Users/changjoon/Documents/04_Coupang/05_ai_forgery/forgery_detection_poc.ipynb)**: An interactive Jupyter Notebook hands-on guide.
-   - Guides you through the local setup and package verification.
-   - Contains cells to load the sample images, run the models, and visualize the output reports side-by-side with the images.
-   - Compares the outputs of **Gemini 3.5 Flash** (cost-efficient) and **Gemini 3.1 Pro** (high-precision audit).
+<div align="left">
+  <a href="https://colab.research.google.com/github/cjk0604/AI-forgery/blob/main/hands_on/forgery_detection_hands_on.ipynb">
+    <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab">
+  </a>
+  <a href="https://console.cloud.google.com/vertex-ai/colab/import/https:%2F%2Fraw.githubusercontent.com%2Fcjk0604%2FAI-forgery%2Fmain%2Fhands_on%2Fforgery_detection_hands_on.ipynb">
+    <img src="https://img.shields.io/badge/Colab_Enterprise-Open-blue?logo=google-cloud" alt="Open In Colab Enterprise">
+  </a>
+  <a href="https://github.com/cjk0604/AI-forgery/blob/main/hands_on/forgery_detection_hands_on.ipynb">
+    <img src="https://img.shields.io/badge/GitHub-View_Source-black?logo=github" alt="View on GitHub">
+  </a>
+</div>
 
 ---
 
-## 🚀 Local Hands-on Setup
-
-Follow these simple steps to run the PoC on your local computer:
-
-### 1. Create a Python Virtual Environment
-
-It is highly recommended to isolate your environment using `venv`:
-
-```bash
-# Navigate to the workspace
-cd /Users/changjoon/Documents/04_Coupang/05_ai_forgery
-
-# Create the virtual environment
-python3 -m venv venv
-
-# Activate it
-source venv/bin/activate
-```
-
-### 2. Install Dependencies
-
-Install the Google GenAI SDK, Pydantic, Pillow, Jupyter, and Matplotlib:
-
-```bash
-pip install --upgrade pip
-pip install google-genai pydantic pillow matplotlib jupyter notebook
-```
-
-### 3. Set your Gemini API Key
-
-Get your API key from Google AI Studio and export it:
-
-```bash
-export GEMINI_API_KEY="your_actual_gemini_api_key_here"
-```
-
-### 4. Run the Jupyter Notebook
-
-Start Jupyter Notebook to open the interactive hands-on guide:
-
-```bash
-jupyter notebook forgery_detection_poc.ipynb
-```
-
-*Alternatively, you can run the CLI script directly:*
-
-```bash
-python3 forgery_detector.py "허위서류 공유/허위서류 공유/현대백화점 영수증.png" gemini-2.5-flash
-```
+## 🌐 Language (언어 선택)
+- [🇰🇷 한국어 설명 (#-한국어-korean)](#-한국어-korean)
+- [🇺🇸 English Description (#-english)](#-english)
 
 ---
 
-## 🧬 Output JSON Payload Structure
+## 🇰🇷 한국어 (Korean)
 
-The `forgery_detector.py` engine guarantees that the API returns a structured JSON payload. Below is a breakdown of the fields you can feed directly into your Ops review backend:
+### 📌 프로젝트 개요
+본 프로젝트는 고객이 제출한 영수증, 구매내역서 등의 상거래 문서 이미지 내 위조, 변조, 혹은 생성형 AI 기반의 합성 흔적을 자동으로 탐지하는 **AI 위조 문서 판별 시스템**입니다. 
 
-| Field Name | Type | Description |
-| :--- | :--- | :--- |
-| `vendor_name` | `string` | The extracted name of the vendor or store. |
-| `is_forged` | `boolean` | Flag indicating if forgery/tampering is detected (`true` or `false`). |
-| `forgery_confidence_score`| `float` | A value between `0.0` and `1.0` indicating how confident the model is. |
-| `forgery_reasoning` | `array[string]`| Detailed bullet-point list of the specific evidence found. |
-| `ai_generation_probability`| `float` | Likelihood that the document was synthetically produced by an AI layout generator. |
-| `ai_generation_reasoning`| `array[string]`| Bullet points explaining the AI generation score. |
-| `ops_requirements` | `array[object]`| A checklist containing `{requirement_name, fulfilled, details}` for standard compliance. |
-| `extracted_metadata` | `object` | Extracted fields such as date, total amount, line items, address, business ID, etc. |
+Google의 최신 **Gemini 3.5 Flash 및 3.1 Pro** 멀티모달 모델의 인지 분석 능력과 **수학적 합산 검증 & 사업자등록번호(BRN) 체크섬** 등의 결정적 비즈니스 규칙(Deterministic Rules)을 융합하여 오탐과 미탐을 극소화하는 포렌식 파이프라인을 구축하고 평가합니다.
 
-### Example JSON Payload Output:
-```json
-{
-    "vendor_name": "현대백화점",
-    "is_forged": true,
-    "forgery_confidence_score": 0.98,
-    "forgery_reasoning": [
-        "The brand name 'Longchamp' is misspelled as '롱삼' (Longsam) throughout the receipt, which is a critical spelling error for a luxury department store brand.",
-        "The purchase store location in the footer is printed as '롱삼' rather than a standard branch name."
-    ],
-    "ai_generation_probability": 0.85,
-    "ai_generation_reasoning": [
-        "The layout uses a standard synthetic thermal receipt generator font, which is highly clean and lacks typical physical scanning noise or authentic thermal print fading."
-    ],
-    "ops_requirements": [
-        {
-            "requirement_name": "brand_spelling_legible",
-            "fulfilled": false,
-            "details": "Brand name 'Longchamp' is printed incorrectly as '롱삼'."
-        },
-        {
-            "requirement_name": "date_legible",
-            "fulfilled": true,
-            "details": "Stated purchase date is 2025-05-31 18:32."
-        }
-    ],
-    "extracted_metadata": {
-        "date": "2025-05-31 18:32",
-        "order_number": "2122-0048",
-        "total_amount": "600,000",
-        "business_registration_number": "124-85-86989",
-        "store_address": "서울 영등포구 여의대로 108",
-        "line_items": [
-            {"item_name": "롱삼 34175089001", "quantity": 1, "amount": "160,000"},
-            {"item_name": "롱삼 L1621089001", "quantity": 1, "amount": "210,000"},
-            {"item_name": "롱삼 L2605089001", "quantity": 1, "amount": "230,000"}
-        ]
-    }
-}
-```
+### 🏗️ 아키텍처 패턴: 듀얼 티어 모델 전략 (Dual-Tiered Routing)
+운영 비용과 분석 정밀도를 최적화하기 위해 다음과 같은 하이브리드 라우팅 아키텍처를 채택합니다:
+- **`gemini-3.5-flash` (1차 고속 필터링):** 초고속 응답성 및 극도의 비용 효율성. 명백한 일자/금액 불일치 1차 스크리닝.
+- **`gemini-3.1-pro-preview` (2차 정밀 심층 오딧):** 독보적인 인지/추론 능력. 미세한 한글/영문 오타, URL 타이포스쿼팅 도메인, 정교한 합성 레이아웃 정밀 검증.
 
 ---
 
-## 📈 Dual-Tiered Production Model Strategy
+### 📊 포렌식 판별 결과 대시보드 (V2 Prompt 기준)
 
-For deployment in Coupang's high-volume onboarding pipeline, we recommend a **two-tiered architecture**:
+실제 검증셋 및 사기방지 운영팀 정답지(Ground Truth)를 기준으로 평가한 결과 대시보드입니다:
 
-```mermaid
-graph TD
-    A[Seller Submits Document] --> B[Tier 1: Gemini 3.5 Flash]
-    B --> C{Risk Score Threshold?}
-    C -->|Low Risk < 0.2| D[Auto-Approve / Pass]
-    C -->|Medium Risk 0.2 - 0.7| E[Tier 2: Gemini 3.1 Pro Deep Audit]
-    C -->|High Risk > 0.7| F[Auto-Flag for Ops Human Agent]
-    E --> G{Audit Findings?}
-    G -->|Confirmed Low Risk| D
-    G -->|Confirmed High Risk| F
-```
+| 검증 문서 이미지 | Flash V1 | Pro V1 | Flash V2 | Pro V2 (최종) | 포렌식 적발 트리거 및 모순점 (Pro V2) |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **무신사 구매내역서 (아디다스)** | `FORGED` | `FORGED` | `FORGED` | `FORGED` (1.00) ✅ | **Inspect Element 조작:** URL 파라미터 내 날짜 메타데이터(`20251228`)와 페이지 내 주문 표기 일자(`25.12.08`) 불일치 |
+| **무신사 구매내역서 (내셔널지오그래픽)** | `FORGED` | `FORGED` | **`GENUINE` ❌** | `FORGED` (1.00) ✅ | **타이포스쿼팅 도메인 & 수학적 모순:** 팝업 URL 내 도메인 오타 주소(`muslnsa.com` / 소문자 'L') 및 품목 금액 합산 수학적 불일치 (`208,700` vs `267,000`) |
+| **무신사 구매내역서 (아디다스 2)** | `FORGED` | `FORGED` | `FORGED` | `FORGED` (1.00) ✅ | **Inspect Element 조작:** URL 경로의 주문번호(`202512282202550002`)와 실제 페이지 상의 주문번호(`202512081527490001`) 불일치 |
+| **아디다스 매장 영수증** | `FORGED` | `FORGED` | `FORGED` | `FORGED` (1.00) ✅ | **미래 일자 & 주소 불일치:** 영수증 인쇄 일자가 미래 시점(`2026/01/24`)이며, 지점명(**\"인산점\"**)과 표기된 실제 주소(**\"경기 하남시\"**)의 모순 |
+| **현대백화점 영수증** | `FORGED` | `FORGED` | **`GENUINE` ❌** | `FORGED` (1.00) ✅ | **브랜드 철자 오타 & 합성 템플릿:** 미래 일자 표기 및 명품 브랜드명 오타 (**\"롱삼\"** ➡️ **\"롱샴\"** / Longchamp), 영수증 한가운데 인위적인 수직선 그어짐 흔적 |
 
-1. **Tier 1 (Gemini 3.5 Flash):** Handles 100% of incoming submissions. Fast (~1-2 seconds) and extremely cost-effective. Extracts metadata, validates mathematics, checks for obvious text matches, and filters out clear passes.
-2. **Tier 2 (Gemini 3.1 Pro):** Automatically triggered only for suspicious, high-risk, or high-value onboarding submissions. Performs deep visual forgery checking, pixel-level character spacing analysis, and complex semantic alignment checks.
+---
+
+### 💡 주요 분석 인사이트
+1. **정밀 태스크에서의 인지 능력 편차:** 고도화된 System Prompt V2 환경에서도 **`gemini-3.5-flash` 모델은 2개의 정교한 위조본을 적발하지 못하고 `GENUINE`(정상)으로 판별하는 오류**를 범했습니다. 특히 \"롱삼\" 철자 오타나 `muslnsa.com`과 같은 1글자 도메인 차이점을 포착하지 못했습니다.
+2. **Pro의 완벽한 검출 성능:** 반면 **`gemini-3.1-pro-preview` 모델은 5개 위조 서류에 대해 단 한 건의 오탐도 없이 100% 완벽하게 시각적/텍스트적 위조 징후를 탐지(신뢰도 1.00)**해 냈습니다.
+3. **운영 권장 구조:** 리스크 및 금액이 높은 거래 건이나 Flash의 판별 신뢰도가 낮은 의심 거래 건은 **반드시 `gemini-3.1-pro-preview` 모델을 통한 심층 오딧(Deep Audit)** 단계를 거치도록 파이프라인 라우팅을 적용해야 합니다.
+
+---
+
+### 🚀 시작하기 & 실행 방법
+1. 위의 **"Open in Colab"** 또는 **"Open in Colab Enterprise"** 배지를 클릭하여 실습 가이드 노트를 실행합니다.
+2. **Setup & 환경 설정:** 안내에 따라 필요한 Google GenAI SDK 패키지를 원클릭 설치합니다.
+3. **대화형 파일 업로드:** **Section 4**를 실행하면 업로드 브라우저 팝업창이 나타납니다. 준비하신 테스트용 위조 의심 문서 이미지 파일들을 드래그 앤 드롭으로 손쉽게 업로드합니다.
+4. **인증 및 클라이언트:** 본인의 Vertex AI API Key, AI Studio API Key, 혹은 active GCP credential 환경에 맞추어 클라이언트를 자동 빌드해 주는 통합 초기화 셀을 활용해 안전하게 인증을 완료하고 테스트를 실행합니다.
+
+---
+
+## 🇺🇸 English
+
+### 📌 Project Overview
+This repository features an **AI Forgery Document Review System** designed to automatically detect visual tampering, inspect-element HTML modifications, and synthetic layout anomalies in user-submitted documents (receipts, statements, invoices).
+
+By combining **multimodal forensic reasoning** using Google's latest **Gemini 3.5 Flash & 3.1 Pro** models with **deterministic business verification rules** (such as mathematical subtotal verification and Luhn-like checksums), this framework establishes a production-grade forensic pipeline maximizing recall and precision.
+
+### 🏗️ Architectural Pattern: Dual-Tiered Routing
+We implement a hybrid routing architecture to balance operations SLA, cost, and absolute precision:
+- **`gemini-3.5-flash` (Tier 1 Screening):** Blazing-fast response, ultra-low cost. Ideal for quick screener checks on obvious discrepancies.
+- **`gemini-3.1-pro-preview` (Tier 2 Deep Audit):** Premium cognitive auditing. Crucial for detecting subtle spelling typos, domain typosquatting, and pixel-perfect overlay manipulations.
+
+---
+
+### 📊 Forensic Evaluation Capability Dashboard (Prompt V2)
+
+Our live audited evaluation dashboard compared against operations-validated ground truth:
+
+| Document Name | Flash V1 | Pro V1 | Flash V2 | Pro V2 (Final) | Core Forgery Triggers Detected (Pro V2) |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Musinsa Adidas Screenshot** | `FORGED` | `FORGED` | `FORGED` | `FORGED` (1.00) ✅ | **Inspect Element Manipulation:** Discrepancy between URL date parameter (`20251228` / Dec 28) and visible page order date (`25.12.08` / Dec 8). |
+| **Musinsa National Geographic** | `FORGED` | `FORGED` | **`GENUINE` ❌** | `FORGED` (1.00) ✅ | **Typosquatting & Arithmetic Mismatch:** Domain typosquatting (`muslnsa.com` with 'L') in browser statement URL. Product line sums do not add up to subtotal (`208,700` vs `267,000`). |
+| **Musinsa Adidas Screenshot 2** | `FORGED` | `FORGED` | `FORGED` | `FORGED` (1.00) ✅ | **Inspect Element Manipulation:** Discrepancy between URL order ID parameter (`202512282202550002`) and visible order number (`202512081527490001`). |
+| **Adidas Receipt** | `FORGED` | `FORGED` | `FORGED` | `FORGED` (1.00) ✅ | **Future Date & Location Conflict:** Receipt dated in the future (`2026/01/24`). Branch named **\"인산점\"** (typo for Ansan) but address lists **\"경기 하남시\"** (Hanam City). |
+| **Hyundai Department Store** | `FORGED` | `FORGED` | **`GENUINE` ❌** | `FORGED` (1.00) ✅ | **Luxury Brand Spelling & Synthesized Grid:** Dated in the future. Brand printed as **\"롱삼\"** (typo for **\"롱샴\"** / Longchamp). Perfectly centered vertical crease indicates digital generation. |
+
+---
+
+### 💡 Key Forensic Insights
+1. **The High-Precision Cognitive Gap:** Even under our strict forensic V2 prompt, **`gemini-3.5-flash` failed to flag two highly sophisticated receipts**, incorrectly evaluating them as **`GENUINE`**. Flash missed the brand spelling typo (\"롱삼\" for Longchamp) and the domain typosquatting (`muslnsa.com`), struggling with small semantic tokens in dense contexts.
+2. **Pro's Superiority:** **`gemini-3.1-pro-preview` executed flawlessly, scoring 100% recall and precision (1.00 confidence score)** across all target items, identifying all spelling, address, date, and visual manipulations.
+3. **Production Routing Strategy:** suspicious, high-value, or low-confidence screening outcomes should **always route to `gemini-3.1-pro-preview`** using System Prompt V2 for forensic-level auditing.
+
+---
+
+### 🚀 Quick Start & Run Guide
+1. Click the **"Open in Colab"** or **"Open in Colab Enterprise"** badges above to launch the guide in your browser.
+2. **Setup & Dependencies:** Run Section 1 to install the `google-genai` SDK and processing packages.
+3. **Interactive File Upload:** Run **Section 4** to reveal the drag-and-drop file upload widget. Simply upload your own target images.
+4. **Universal Authentication:** Configure your preferred authentication model (Vertex AI API Key, AI Studio API Key, environment variables, or active cloud credentials) in the flexible initial cell and start analyzing!
